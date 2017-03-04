@@ -23,6 +23,55 @@
         return color_cycle;
     }();
 
+
+    function getStyleRuleValue(selector, style, sheet_) {
+        var sheets =  typeof sheet_ !== 'undefined' ? [sheet_] : document.styleSheets;
+        for (var i = 0, l = sheets.length; i < l; i++) {
+            var sheet = sheets[i];
+            if( !sheet.cssRules ) { continue; }
+            for (var j = 0, k = sheet.cssRules.length; j < k; j++) {
+                var rule = sheet.cssRules[j];
+                if (rule.selectorText && rule.selectorText.split(',').indexOf(selector) !== -1) {
+                    if (typeof style !== 'undefined') {
+                        return rule.style[style];
+                    } else {
+                        return rule.style;
+                    }
+                }
+            }
+     }
+        return null;
+    }
+
+
+    function findTargetParameter(parameterName) {
+        var result = null,
+            tmp = [];
+        window.location.hash
+            .substr(1)
+            .split("&")
+            .forEach(function (item) {
+                tmp = item.split("=");
+                if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
+            });
+        return result;
+    }
+
+
+    function findGetParameter(parameterName) {
+        var result = null,
+            tmp = [];
+        window.location.search
+            .substr(1)
+            .split("&")
+            .forEach(function (item) {
+                tmp = item.split("=");
+                if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
+            });
+        return result;
+    }
+
+
     var videograph = function (options) {
         var graph = null,
             graph_file = options.graph_file || "test.csv",
@@ -38,52 +87,6 @@
             scale = options.scale || 1., // scale factor for displaying data
             units = options.units || "" // units of column_name
             ;
-
-
-        function getStyleRuleValue(selector, style, sheet_) {
-            var sheets =  typeof sheet_ !== 'undefined' ? [sheet_] : document.styleSheets;
-            for (var i = 0, l = sheets.length; i < l; i++) {
-                var sheet = sheets[i];
-                if( !sheet.cssRules ) { continue; }
-                for (var j = 0, k = sheet.cssRules.length; j < k; j++) {
-                    var rule = sheet.cssRules[j];
-                    if (rule.selectorText && rule.selectorText.split(',').indexOf(selector) !== -1) {
-                        if (typeof style !== 'undefined') {
-                            return rule.style[style];
-                        } else {
-                            return rule.style;
-                        }
-                    }
-                }
-         }
-            return null;
-        }
-
-        function findTargetParameter(parameterName) {
-            var result = null,
-                tmp = [];
-            window.location.hash
-                .substr(1)
-                .split("&")
-                .forEach(function (item) {
-                    tmp = item.split("=");
-                    if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
-                });
-            return result;
-        }
-
-        function findGetParameter(parameterName) {
-            var result = null,
-                tmp = [];
-            window.location.search
-                .substr(1)
-                .split("&")
-                .forEach(function (item) {
-                    tmp = item.split("=");
-                    if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
-                });
-            return result;
-        }
 
         //var graphStyle = getStyleRuleValue('#graph i');
         var graphStyle = getStyleRuleValue('#moving-graph');
@@ -184,11 +187,10 @@
 
         player.on('ratechange', updateClockRate);
 
-        var svg = d3.select("svg"),
-                height = +svg.attr("height"),
-                width = +svg.attr("width"),
-                g = svg.append("g")
-                ;
+        var svg = d3.select("svg");
+        var height = +svg.attr("height");
+        var width = +svg.attr("width");
+        var svg_group = svg.append("g");
 
         var x = d3.scaleLinear()
                 .rangeRound([0, width])
@@ -196,6 +198,34 @@
 
         var y = d3.scaleTime();
 
+        var plot_legend = function (columns) {
+            var legend = svg.append("g")
+                .attr("class", "legend")
+                .attr("height", 100)
+                .attr("width", 100)
+                .attr('transform', 'translate(-20,50)')
+
+
+            legend.selectAll('path')
+                .data(columns)
+                .enter()
+                .append("path")
+                .attr("d", function(d, i){
+                    var x = width-65, y = i*20+3;
+                    return "M "+x+" "+y+" h 10";
+                })
+                .attr("stroke-width", 1.5)
+                .style("stroke", color_cycle);
+
+            legend.selectAll('text')
+                .data(columns)
+                .enter()
+                .append("text")
+                .attr("x", width - 52)
+                .attr("y", function(d, i){ return i *  20 + 9;})
+                .text(function(column) {return column; });
+
+        }
 
         player.ready(function () {
             var file;
@@ -242,7 +272,7 @@
                         //x.domain(d3.extent(data, function(d) { return d[column]; }));
                         //y.domain(d3.extent(data, function(d) { return d.sod; }));
 
-                        g.append("g")
+                        svg_group.append("g")
                                 .attr("transform", "translate(0," + height/2 + ")")
                                 .call(d3.axisTop(x))
                             .append("text")
@@ -258,28 +288,31 @@
                                 .call(d3.axisLeft(y))
                                 ;*/
 
-                        var graph_g = g.append("g")
-                            .attr("id", function(d, i){ return 'moving-graph'; })
+                        var graph_g = svg_group.append("g")
+                            .attr("id", "moving-graph")
 
                         graph = document.getElementById('moving-graph');
 
-                        for (var column in data[0]) {
-                            if (column == 'time') {
-                                continue;
-                            }
-                            var line = d3.line()
-                                .x(function(d) { return x(d[column]*scale); })
-                                .y(function(d) { return y(d.time); })
-                                .defined(function(d) { return !isNaN(d[column]); });
-                            var graph_path = graph_g.append("path")
-                                .datum(data)
-                                .attr("fill", "none")
-                                .attr("stroke", color_cycle(column))
-                                .attr("stroke-linejoin", "round")
-                                .attr("stroke-linecap", "round")
-                                .attr("stroke-width", 1.5)
-                                .attr("d", line);
+                        var columns = d3.keys(data[0]).filter(function(column) {return column != 'time';});
+                        var line = function (column) {
+                            var d3_line = d3.line()
+                            .x(function(row) { return x(row[column]*scale); })
+                            .y(function(row) { return y(row.time); })
+                            .defined(function(row) { return !isNaN(row[column]); });
+                            return d3_line(data);
                         }
+
+                        var graph_paths = graph_g.selectAll("path")
+                            .data(columns).enter()
+                            .append("path")
+                            .attr("fill", "none")
+                            .attr("stroke", color_cycle)
+                            .attr("stroke-linejoin", "round")
+                            .attr("stroke-linecap", "round")
+                            .attr("stroke-width", 1.5)
+                            .attr("d", line);
+
+                        plot_legend(columns);
                     });
 
                     //d3 end
