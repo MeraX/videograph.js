@@ -1,0 +1,87 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <script src="libs/d3.js/d3.js"></script>
+  <link href="libs/video.js/video-js.css" rel="stylesheet">
+  <script src="libs/video.js/video.js"></script>
+
+  <!-- If you'd like to support IE8 -->
+  <!-- script src="http://vjs.zencdn.net/ie8/1.1.2/videojs-ie8.min.js"></script -->
+
+
+  <link href="videograph.css" rel="stylesheet">
+  <script src="videograph.js"></script>
+  <title>Video Graph -  beta</title>
+  <style>
+  #forkongithub a{background:#457A93;color:#ccc;text-decoration:none;font:bold 1rem/1.5rem arial, sans-serif;text-align:center;padding:5px 40px;position:relative;transition:0;}
+  #forkongithub a:hover{background:#2B5A70;color:#fff;}
+  #forkongithub a::before,#forkongithub a::after{content:"";width:100%;display:block;position:absolute;top:1px;left:0;height:1px;background:#ccc;}
+  #forkongithub a::after{bottom:1px;top:auto;}
+  @media screen and (min-width:800px){
+    #forkongithub{position:absolute;display:block;top:0;right:0;width:200px;overflow:hidden;height:200px;z-index:9999;}
+    #forkongithub a{width:200px;position:absolute;top:60px;right:-60px;transform:rotate(45deg);-webkit-transform:rotate(45deg);-ms-transform:rotate(45deg);-moz-transform:rotate(45deg);-o-transform:rotate(45deg);box-shadow:4px 4px 10px rgba(0,0,0,0.8);}
+  }
+  </style>
+</head>
+<body>
+
+  <h1>Video Graph <i>- beta</i></h1>
+  <span id="forkongithub"><a href="https://github.com/MeraX/videograph.js">Fork me on GitHub</a></span>
+  <p>
+    A tool to analyze time series synchronously with the <a href="https://macsserver.physik.uni-muenchen.de/campaigns/">specMACS campaign quicklook videos.</a><br>
+    <br>
+    Marek Jacob, 2017
+    <br>
+    <br>
+    <br>
+    Right now, the video shows the NARVAL-II RF02 and the graph is a preliminary HAMP-LWP product.
+  </p>
+  <div style="width: 1200px; height: 640px">
+    <div class="graph">
+      <svg width="500" height="640"></svg>
+    </div>
+    <div class="graph">
+      <video id="myvideo" class="video-js" controls preload="auto" width="640" height="640"
+      poster="videograph.svg" data-setup="{}">
+        <!-- source src="RF03.webm" type='video/webm' -->
+        <source src="https://macsserver.physik.uni-muenchen.de/campaigns/NARVAL-II/videos/RF03.webm" type='video/webm'>
+        <p class="vjs-no-js">
+          To view this video please enable JavaScript, and consider upgrading to a web browser that
+          <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+        </p>
+      </video>
+      <div id="field_of_view"></div>
+      <div id="fwhm"></div>
+      <div id="field_of_view3"></div>
+      <div id="fwhm3"></div>
+    </div>
+      <script>
+        videojs('myvideo', {
+          controls: true,
+          controlBar: { "volumeMenuButton": false },
+          nativeControlsForTouch: false,
+          width: 640,
+          height: 640,
+          plugins: {
+            videograph: {
+              units: "g/m²",
+              scale: 1000,
+              column_name: "test",
+              graph_file: "test.csv"
+              /**
+               * Time can be either given as column
+               * "sod" (seconds of day),
+               * "time_s" (unix time stamp in seconds) or
+               * "time" (unix time stamp in miliseconds, like used with Javascript Date()).
+              **/
+            }
+          },
+          playbackRates: [0.5, 1, 1.5, 2]
+        });
+      </script>
+  </div>
+<h3>Notes</h3>
+<ul>
+  <li>Center of the graph is aligned to the time step of the Video. Top to bottom stretching is approximated. It is estimated that a cloud needs 45s to cross the image from bottom to top.</li>
+  <li>Graph generated with <a href="https://d3js.org/">d3.js</a>, Video played by <a href="http://videojs.com/">video.js</a>.</li>
+</ul>
+</body>
