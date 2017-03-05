@@ -8,6 +8,8 @@
   <!-- script src="http://vjs.zencdn.net/ie8/1.1.2/videojs-ie8.min.js"></script -->
 
 
+  <link rel="stylesheet" href="libs/Skeleton-2.0.4/normalize.css">
+  <link rel="stylesheet" href="libs/Skeleton-2.0.4/skeleton.css">
   <link href="videograph.css" rel="stylesheet">
   <script src="videograph.js"></script>
   <title>Video Graph -  beta</title>
@@ -23,9 +25,9 @@
   </style>
 </head>
 <body>
-
+<span id="forkongithub"><a href="https://github.com/MeraX/videograph.js">Fork me on GitHub</a></span>
+<div class="container">
   <h1>Video Graph <i>- beta</i></h1>
-  <span id="forkongithub"><a href="https://github.com/MeraX/videograph.js">Fork me on GitHub</a></span>
   <p>
     A tool to analyze time series synchronously with the <a href="https://macsserver.physik.uni-muenchen.de/campaigns/">specMACS campaign quicklook videos.</a><br>
     <br>
@@ -42,7 +44,6 @@
     <div class="graph">
       <video id="myvideo" class="video-js" controls preload="auto" width="640" height="640"
       poster="videograph.svg" data-setup="{}">
-        <!-- source src="RF03.webm" type='video/webm' -->
         <source src="https://macsserver.physik.uni-muenchen.de/campaigns/NARVAL-II/videos/RF03.webm" type='video/webm'>
         <p class="vjs-no-js">
           To view this video please enable JavaScript, and consider upgrading to a web browser that
@@ -79,9 +80,14 @@
         });
       </script>
   </div>
-<h3>Notes</h3>
-<ul>
-  <li>Center of the graph is aligned to the time step of the Video. Top to bottom stretching is approximated. It is estimated that a cloud needs 45s to cross the image from bottom to top.</li>
-  <li>Graph generated with <a href="https://d3js.org/">d3.js</a>, Video played by <a href="http://videojs.com/">video.js</a>.</li>
-</ul>
+
+  <h3>Notes</h3>
+  <ul>
+    <li>Center of the graph is aligned to the time step of the Video. Top to bottom stretching is approximated. It is estimated that a cloud needs 45s to cross the image from bottom to top.</li>
+    <li>Graph generated with <a href="https://d3js.org/">d3.js</a>, Video played by <a href="http://videojs.com/">video.js</a>.</li>
+  </ul>
+</div>
+
+<script src="videograph_onReady.js"></script>
+
 </body>

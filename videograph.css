@@ -1,4 +1,16 @@
+body{
+    font-family: Helvetica, Arial, sans-serif;
+}
 
+.container{
+    margin: 10px;
+}
+
+.description{
+    font-size: 0.9rem;
+}
+
+/** Graph specific **/
 .graph{
     float: left;
     height: 640px;
