@@ -38,11 +38,10 @@ function findTargetParameter(parameterName) {
 
 
 function setTargetParameter(name, value) {
-    // update url with current s parameter
     value = encodeURIComponent(value);
-    var current_value = encodeURIComponent(findTargetParameter(name));
+    var current_value = findTargetParameter(name);
     if (current_value !== null) {
-        var re = new RegExp('([#&]'+name+'=)'+escapeRegExp(current_value));
+        var re = new RegExp('([#&]'+name+'=)'+escapeRegExp(encodeURIComponent(current_value)));
         window.location.hash = window.location.hash.replace(re, '$1'+value);
     } else {
         if (window.location.hash) {
