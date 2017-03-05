@@ -24,7 +24,7 @@ The port may differ from 8000. Have a look on the python SimpleHTTPServer output
   * ☐ Adjust the graph top-bottom expansion parameter to flight altitude and speed.
   * ☐ Add possibility to upload own data.
   * ☐ Make the flight/video exchangeable.
-  * ☐ Provide possibility to change meta Data (FOW-width, data range, scale, legend).
+  * ☐ Provide possibility to change meta Data (FOW-width ☑, data range, scale, legend ☑).
   * ☑ Show multiple curves including legend.
   * ☐ Show multiple curve panels or different axes on one panel.
   * ☐ Find a nice way to show time series of flags.

@@ -18,36 +18,36 @@ body{
     position: relative;
 }
 
-#field_of_view, #fwhm{
+.graph .field_of_view, .graph .fwhm{
     width: 45.7px; /* videoWidth/70 * FWHM */
     left: 296.14px;/*(videoWidth - width)/2 - 1 */
     position: absolute;
 }
 
-#field_of_view{
+.graph .field_of_view{
     height: 100%;
     border: 1px solid white;
 }
-#fwhm{
-    height: 45.7px; /* videoWidth/70 * FWHM */
+.graph .fwhm{
+    height: 45.7px; /* width */
     top: 296.14px;/*(videoWidth - width)/2 - 1 */
-    -webkit-border-radius: 22.85px;
+    -webkit-border-radius: 22.85px; /* width / 2 */
     -moz-border-radius: 22.85px;
     border-radius: 22.85px;
     border: 1px solid red;
 }
 
-#field_of_view3, #fwhm3{
+.graph .field_of_view3, .graph .fwhm3{
     width: 137.1px; /* videoWidth/70 * FWHM*3 */
     left: 250.45px;/*(videoWidth - width)/2 - 1 */
     position: absolute;
 }
 
-#field_of_view3{
+.graph .field_of_view3{
     height: 100%;
     border: 1px dashed white;
 }
-#fwhm3{
+.graph .fwhm3{
     height: 137.1px; /* videoWidth/70 * FWHM*3 */
     top: 250.45px;/*(videoWidth - width)/2 - 1 */
     -webkit-border-radius: 68.55px;
@@ -55,7 +55,6 @@ body{
     border-radius: 68.55px;
     border: 1px dashed red;
 }
-
 
 #myvideo{
     position: absolute;

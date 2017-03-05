@@ -1,3 +1,74 @@
+function escapeRegExp(str) {
+    // see http://stackoverflow.com/a/6969486
+    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+}
+
+function getStyleRuleValue(selector, style, sheet_) {
+    var sheets =  typeof sheet_ !== 'undefined' ? [sheet_] : document.styleSheets;
+    for (var i = 0, l = sheets.length; i < l; i++) {
+        var sheet = sheets[i];
+        if( !sheet.cssRules ) { continue; }
+        for (var j = 0, k = sheet.cssRules.length; j < k; j++) {
+            var rule = sheet.cssRules[j];
+            if (rule.selectorText && rule.selectorText.split(',').indexOf(selector) !== -1) {
+                if (typeof style !== 'undefined') {
+                    return rule.style[style];
+                } else {
+                    return rule.style;
+                }
+            }
+        }
+ }
+    return null;
+}
+
+
+function findTargetParameter(parameterName) {
+    var result = null,
+        tmp = [];
+    window.location.hash
+        .substr(1)
+        .split("&")
+        .forEach(function (item) {
+            tmp = item.split("=");
+            if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
+        });
+    return result;
+}
+
+
+function setTargetParameter(name, value) {
+    // update url with current s parameter
+    value = encodeURIComponent(value);
+    var current_value = encodeURIComponent(findTargetParameter(name));
+    if (current_value !== null) {
+        var re = new RegExp('([#&]'+name+'=)'+escapeRegExp(current_value));
+        window.location.hash = window.location.hash.replace(re, '$1'+value);
+    } else {
+        if (window.location.hash) {
+            window.location.hash += '&'+name+'='+value;
+        } else {
+            window.location.hash = '#'+name+'='+value;
+        }
+    }
+}
+
+
+function findGetParameter(parameterName) {
+    var result = null,
+        tmp = [];
+    window.location.search
+        .substr(1)
+        .split("&")
+        .forEach(function (item) {
+            tmp = item.split("=");
+            if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
+        });
+    return result;
+}
+
+var update_units_text; /*fill it inside videograph' */
+
 (function (videojs) {
     'use strict';
     /*
@@ -23,55 +94,6 @@
         return color_cycle;
     }();
 
-
-    function getStyleRuleValue(selector, style, sheet_) {
-        var sheets =  typeof sheet_ !== 'undefined' ? [sheet_] : document.styleSheets;
-        for (var i = 0, l = sheets.length; i < l; i++) {
-            var sheet = sheets[i];
-            if( !sheet.cssRules ) { continue; }
-            for (var j = 0, k = sheet.cssRules.length; j < k; j++) {
-                var rule = sheet.cssRules[j];
-                if (rule.selectorText && rule.selectorText.split(',').indexOf(selector) !== -1) {
-                    if (typeof style !== 'undefined') {
-                        return rule.style[style];
-                    } else {
-                        return rule.style;
-                    }
-                }
-            }
-     }
-        return null;
-    }
-
-
-    function findTargetParameter(parameterName) {
-        var result = null,
-            tmp = [];
-        window.location.hash
-            .substr(1)
-            .split("&")
-            .forEach(function (item) {
-                tmp = item.split("=");
-                if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
-            });
-        return result;
-    }
-
-
-    function findGetParameter(parameterName) {
-        var result = null,
-            tmp = [];
-        window.location.search
-            .substr(1)
-            .split("&")
-            .forEach(function (item) {
-                tmp = item.split("=");
-                if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
-            });
-        return result;
-    }
-
-
     var videograph = function (options) {
         var graph = null,
             graph_file = options.graph_file || "test.csv",
@@ -83,9 +105,8 @@
             end = null,
             time_top_bottom=45e3,
             videoHeight = options.videoHeight || player.videoHeight() || player.el().offsetHeight,
-            column_name = options.column_name || "data", // name of column_name to show
             scale = options.scale || 1., // scale factor for displaying data
-            units = options.units || "" // units of column_name
+            units = findTargetParameter('units') || options.units || "" // units of abscissa
             ;
 
         //var graphStyle = getStyleRuleValue('#graph i');
@@ -116,6 +137,13 @@
             graph.style.transform = 'translateY('+top+'px)';
         };
 
+        var units_text;
+        update_units_text = function(units) {
+            if (units === undefined) {
+                units = findTargetParameter('units');
+            }
+            units_text.text(units);
+        }
 
         function jumpGraph () {
             graphStyle.transition = '';
@@ -148,21 +176,6 @@
         };
 
 
-        function update_url() {
-            // update url with current s parameter
-            var s =  findTargetParameter('s');
-            if (s) {
-                var re = new RegExp('([#&]s=)'+s);
-                window.location.hash = window.location.hash.replace(re, '$1'+player.currentTime());
-            } else {
-                if (window.location.hash) {
-                    window.location.hash += '&s='+player.currentTime();
-                } else {
-                    window.location.hash = '#s='+player.currentTime();
-                }
-            }
-        }
-
         player.on('play', function () {
             if (!graph) {
                 graph = document.getElementById('XX');
@@ -174,12 +187,12 @@
 
         player.on('pause', function () {
             pause();
-            update_url();
+            setTargetParameter('s', player.currentTime());
         });
 
         player.on('seeking', function () {
             pause();
-            update_url();
+            setTargetParameter('s', player.currentTime());
         });
 
         function updateClockRate() {
@@ -272,7 +285,7 @@
                         //x.domain(d3.extent(data, function(d) { return d[column]; }));
                         //y.domain(d3.extent(data, function(d) { return d.sod; }));
 
-                        svg_group.append("g")
+                        units_text = svg_group.append("g")
                                 .attr("transform", "translate(0," + height/2 + ")")
                                 .call(d3.axisTop(x))
                             .append("text")
@@ -281,8 +294,8 @@
                                 .attr("x", width)
                                 .attr("dy", "1.71em")
                                 .attr("text-anchor", "end")
-                                .text(column_name + " (" + units + ")")
                             ;
+                        update_units_text(units);
 
                         /*g.append("g")
                                 .call(d3.axisLeft(y))
@@ -317,7 +330,7 @@
 
                     //d3 end
                     var s = findTargetParameter('s') || findGetParameter('s');
-                    if (s) {
+                    if (s !== null) {
                         player.currentTime(+s);
                         player.play();
                         player.pause();
@@ -334,4 +347,5 @@
     };
 
     videojs.plugin('videograph', videograph);
+
 }(window.videojs));

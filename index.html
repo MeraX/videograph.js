@@ -49,11 +49,11 @@
           To view this video please enable JavaScript, and consider upgrading to a web browser that
           <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
         </p>
-      </video>
-      <div id="field_of_view"></div>
-      <div id="fwhm"></div>
-      <div id="field_of_view3"></div>
-      <div id="fwhm3"></div>
+      </video><!-- -->
+      <div class="field_of_view"></div>
+      <div class="fwhm"></div>
+      <div class="field_of_view3"></div>
+      <div class="fwhm3"></div>
     </div>
       <script>
         videojs('myvideo', {
@@ -66,7 +66,6 @@
             videograph: {
               units: "g/m²",
               scale: 1000,
-              column_name: "test",
               graph_file: "test.csv"
               /**
                * Time can be either given as column
@@ -79,6 +78,33 @@
           playbackRates: [0.5, 1, 1.5, 2]
         });
       </script>
+  </div>
+
+  <h2>Settings</h2>
+  <div class="row">
+    <div class="four columns">
+      <label for="FWHM">
+        FWHM (deg) <span class="description">full width at half maximum</span>
+      </label>
+      <input class="u-full-width" type="text" id="FWHM">
+      <script>document.getElementById("FWHM").value=findTargetParameter('FWHM');</script>
+    </div>
+    <!-- div class="four columns">
+      <label for="scale">
+        Scale <span class="description">multiplicator</span>
+      </label>
+      <input class="u-full-width" type="text" id="scale">
+      <script>document.getElementById("scale").value=findTargetParameter('scale');</script>
+    </div -->
+    <div class="four columns">
+      <label for="units">
+        Units
+      </label>
+      <input class="u-full-width" type="text" id="units">
+      <script>document.getElementById("units").value=findTargetParameter('units');</script>
+    </div>
+  </div>
+  <div class="row">
   </div>
 
   <h3>Notes</h3>
