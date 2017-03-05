@@ -66,13 +66,16 @@
             videograph: {
               units: "g/m²",
               scale: 1000,
-              graph_file: "test.csv"
+              graph_file: "test.csv",
               /**
-               * Time can be either given as column
+               * Time in graph_file(csv) must given as column, eigher:
                * "sod" (seconds of day),
                * "time_s" (unix time stamp in seconds) or
                * "time" (unix time stamp in miliseconds, like used with Javascript Date()).
               **/
+              cloud_top_height: 3500,
+              min_value: -30,
+              max_value: 30,
             }
           },
           playbackRates: [0.5, 1, 1.5, 2]
@@ -109,7 +112,7 @@
 
   <h3>Notes</h3>
   <ul>
-    <li>Center of the graph is aligned to the time step of the Video. Top to bottom stretching is approximated. It is estimated that a cloud needs 45s to cross the image from bottom to top.</li>
+    <li>Center of the graph is aligned to the time step of the Video. Top to bottom stretching is approximated. It is estimated that the cloud top hight is at 1 km.</li>
     <li>Graph generated with <a href="https://d3js.org/">d3.js</a>, Video played by <a href="http://videojs.com/">video.js</a>.</li>
   </ul>
 </div>

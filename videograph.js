@@ -68,6 +68,7 @@ function findGetParameter(parameterName) {
 
 var update_units_text; /*fill it inside videograph' */
 
+
 (function (videojs) {
     'use strict';
     /*
@@ -97,13 +98,16 @@ var update_units_text; /*fill it inside videograph' */
         var graph = null,
             graph_file = options.graph_file || "test.csv",
             player = this,
-            frames = null,
-            times = null,
-            dates = null,
+            frame_to_time = function() {return 0;},
+            time_to_ground_speed = function() {return 0;},
+            time_to_altitude = function() {return 0;},
             start = null,
             end = null,
             time_top_bottom=45e3,
             videoHeight = options.videoHeight || player.videoHeight() || player.el().offsetHeight,
+            cloud_top_height = options.cloud_top_height || 1000, //cloud top height (m)
+            min_value = options.min_value || -30, //minimal value
+            max_value = options.max_value || 30, //maximal value
             scale = options.scale || 1., // scale factor for displaying data
             units = findTargetParameter('units') || options.units || "" // units of abscissa
             ;
@@ -112,28 +116,27 @@ var update_units_text; /*fill it inside videograph' */
         var graphStyle = getStyleRuleValue('#moving-graph');
         var old_transition = graphStyle ? graphStyle.transition : null;
 
-        function videoTimeToMeasurementTime(videoTime) {
+        function video_time_to_time(videoTime) {
+            /* returns numer of millisecods in measurement time since start of video */
             if (!videoTime) {
                 videoTime = player.currentTime();
             }
             var frame = videoTime * 25;
-
-            var i_frame = 0;
-            for (i_frame = 1; i_frame < frames.length; i_frame++) {
-                if (frames[i_frame] > frame) {
-                    break;
-                }
-            }
-            var deltaTime = (times[i_frame]-times[i_frame-1]),
-                deltaFrame = (frames[i_frame]-frames[i_frame-1])
-            ;
-            var measurementTime = (frame-frames[i_frame-1]) / deltaFrame * deltaTime + times[i_frame-1];
-            return measurementTime - times[0];;
+            return frame_to_time(frame);
         }
 
-        function updateGraph () {
-            var top = videoHeight/2-videoTimeToMeasurementTime() * videoHeight/time_top_bottom;
-            graph.style.transform = 'translateY('+top+'px)';
+        function updateGraph (lead_time) {
+            var time = video_time_to_time()
+            var top = -(time - start +lead_time) * videoHeight/time_top_bottom;
+            if(time_to_altitude(time)>cloud_top_height) {
+                /* Use simple trigonometry to calculate the time a cloud at
+                 * cloud_top_height needs to pass the viewing angle of 70°
+                 * np.tan(np.deg2rad(35))*2 = 1.4 */
+                var time_scale = (time_to_ground_speed(time)/1000 * time_top_bottom) / (1.4 * (time_to_altitude(time) - cloud_top_height));
+                graph.style.transform = 'scale(1,'+time_scale+') translateY('+top+'px)';
+            } else {
+                graph.style.transform = 'translateY('+top+'px)';
+            }
         };
 
         var units_text;
@@ -159,7 +162,7 @@ var update_units_text; /*fill it inside videograph' */
         var timeout = null;
 
         function play () {
-            updateGraph();
+            updateGraph(200);
             if (timeout) {
                 clearTimeout(timeout);
             }
@@ -202,11 +205,11 @@ var update_units_text; /*fill it inside videograph' */
         var svg = d3.select("svg");
         var height = +svg.attr("height");
         var width = +svg.attr("width");
-        var svg_group = svg.append("g");
+        var svg_group = svg.append("g").attr('transform', 'translate(0,'+videoHeight/2+')');
 
         var x = d3.scaleLinear()
                 .rangeRound([0, width])
-                .domain([-0.1*scale,1*scale]); // make flexible
+                .domain([min_value*scale,max_value*scale]);
 
         var y = d3.scaleTime();
 
@@ -215,7 +218,7 @@ var update_units_text; /*fill it inside videograph' */
                 .attr("class", "legend")
                 .attr("height", 100)
                 .attr("width", 100)
-                .attr('transform', 'translate(-20,50)')
+                .attr('transform', 'translate(-50,10)')
 
 
             legend.selectAll('path')
@@ -240,26 +243,15 @@ var update_units_text; /*fill it inside videograph' */
         }
 
         player.ready(function () {
-            var file;
+            var xhttp_frames_json = new XMLHttpRequest();
+            xhttp_frames_json.onreadystatechange = function () {
+                if(xhttp_frames_json.readyState === XMLHttpRequest.DONE && xhttp_frames_json.status === 200) {
+                    var frames_json = JSON.parse(this.responseText);
 
-            file = player.currentSrc()
-            if (file.endsWith('webm')) {
-                file = file.slice(0,-4)+'json';
-            } else {
-                file = file.slice(0,-3)+'json';
-            }
+                    frame_to_time = d3.scaleLinear().domain(frames_json.frames).range(frames_json.times);
 
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function () {
-                if(xhttp.readyState === XMLHttpRequest.DONE && xhttp.status === 200) {
-                    var newArr = JSON.parse(this.responseText);
-
-                    frames = newArr.frames;
-                    times = newArr.times;
-                    dates = times.map(Date);
-
-                    start = times[0];
-                    end = times[times.length-1];
+                    start = frames_json.times[0];
+                    end = frames_json.times[frames_json.times.length-1];
                     var plot_total_height = (end-start)*height/time_top_bottom;
 
                     y.range([0, plot_total_height]).domain([start, end]);
@@ -268,10 +260,10 @@ var update_units_text; /*fill it inside videograph' */
 
                     d3.csv(graph_file, function(d, i, columns) {
                         columns.map(function (c) {d[c] = +d[c]});
-                        if (d.sod) {
+                        if (d.sod !== undefined) {
                             d.time = new Date(d.sod * 1e3 + day_start);
                             delete d.sod;
-                        } else if (d.time_s) {
+                        } else if (d.time_s !== undefined) {
                             d.time = new Date(d.time_s * 1e3);
                             delete d.time_s;
                         } else {
@@ -281,15 +273,10 @@ var update_units_text; /*fill it inside videograph' */
                     }, function(error, data) {
                         if (error) throw error;
 
-                        //x.domain(d3.extent(data, function(d) { return d[column]; }));
-                        //y.domain(d3.extent(data, function(d) { return d.sod; }));
-
                         units_text = svg_group.append("g")
-                                .attr("transform", "translate(0," + height/2 + ")")
                                 .call(d3.axisTop(x))
                             .append("text")
                                 .attr("fill", "#000")
-                                //.attr("transform", "rotate(-90)")
                                 .attr("x", width)
                                 .attr("dy", "1.71em")
                                 .attr("text-anchor", "end")
@@ -325,21 +312,42 @@ var update_units_text; /*fill it inside videograph' */
                             .attr("d", line);
 
                         plot_legend(columns);
+                        var s = findTargetParameter('s') || findGetParameter('s');
+                        if (s !== null) {
+                            player.currentTime(+s);
+                            player.play();
+                            player.pause();
+                            jumpGraph();
+                        }
                     });
 
-                    //d3 end
-                    var s = findTargetParameter('s') || findGetParameter('s');
-                    if (s !== null) {
-                        player.currentTime(+s);
-                        player.play();
-                        player.pause();
-                        jumpGraph();
-                    }
 
                 }
             };
-            xhttp.open("GET", file, true);
-            xhttp.send();
+            var file;
+
+            file = player.currentSrc()
+            if (file.endsWith('webm')) {
+                file = file.slice(0,-4)+'json';
+            } else {
+                file = file.slice(0,-3)+'json';
+            }
+            xhttp_frames_json.open("GET", file, true);
+            xhttp_frames_json.send();
+
+            var xhttp_nas_json = new XMLHttpRequest();
+            xhttp_nas_json.onreadystatechange = function () {
+                if(xhttp_nas_json.readyState === XMLHttpRequest.DONE && xhttp_nas_json.status === 200) {
+                    var nas_json = JSON.parse(this.responseText);
+                    time_to_ground_speed = d3.scaleLinear().domain(nas_json.ground_speed.time).range(nas_json.ground_speed.value);
+                    time_to_altitude = d3.scaleLinear().domain(nas_json.height.time).range(nas_json.height.value);
+                };
+            }
+            file = file.replace(/\/videos\/(RF[0-9]+.json)/, "/nas/$1")
+            xhttp_nas_json.open("GET", file, true);
+            xhttp_nas_json.send();
+
+
 
         });
 
