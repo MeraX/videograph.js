@@ -68,6 +68,7 @@ function findGetParameter(parameterName) {
 
 var update_units_text; /*fill it inside videograph' */
 
+var cloud_top_height = 1000; /*TODO: wrap somewhere'*/
 
 (function (videojs) {
     'use strict';
@@ -105,7 +106,6 @@ var update_units_text; /*fill it inside videograph' */
             end = null,
             time_top_bottom=45e3,
             videoHeight = options.videoHeight || player.videoHeight() || player.el().offsetHeight,
-            cloud_top_height = options.cloud_top_height || 1000, //cloud top height (m)
             min_value = options.min_value || -30, //minimal value
             max_value = options.max_value || 30, //maximal value
             scale = options.scale || 1., // scale factor for displaying data

@@ -32,14 +32,8 @@ All other columns are then shown as graphs in one figure.
 
 ### Adjust "y"-Axis
 Finally, you have to specify the range of th y-axis, which is the horizontal axis in this case.
-This must be done in the third line of
-```
-        var x = d3.scaleLinear()
-                .rangeRound([0, width])
-                .domain([-0.1*scale,1*scale]); // make flexible
-```
-in `videograph.js`.
-In this example, the range is set from `-0.1*scale` to `1*scale` where scale is a parameter to scale all y-data.
+Todo so, set `min_value` and `max_value` in `index.html`.
+The `scale` parameter can be used to multiply a constant with all shown data as well as `min_value` and `max_value`.
 
 ### Host Video Graph
 Video Graph has to be hosted on a web server.
@@ -58,7 +52,7 @@ The port may differ from 8000. Have a look on the python SimpleHTTPServer output
   * ☐ Use real cloud top hight for the top-bottom scaling of the graph.
   * ☐ Add possibility to upload own data.
   * ☐ Make the flight/video exchangeable.
-  * ☐ Provide possibility to change meta Data (FOW-width ☑, data range, scale, legend ☑).
+  * ☐ Provide possibility to change meta Data (FOW-width ☑, data range ½, scale ½, legend ☑).
   * ☑ Show multiple curves including legend.
   * ☐ Show multiple curve panels or different axes on one panel.
   * ☐ Find a nice way to show time series of flags.

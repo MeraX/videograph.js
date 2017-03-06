@@ -35,8 +35,9 @@ d3.select("#FWHM").on("input", function() {
     update_field_of_view();
 });
 
-d3.select("#scale").on("input", function() {
-    setTargetParameter('scale',this.value);
+d3.select("#cloud_top_height").on("input", function() {
+    setTargetParameter('cth',this.value);
+    cloud_top_height = +this.value;
 });
 
 d3.select("#units").on("input", function() {
@@ -45,3 +46,5 @@ d3.select("#units").on("input", function() {
 });
 
 update_field_of_view();
+
+cloud_top_height = findTargetParameter('cth') || 1000;
